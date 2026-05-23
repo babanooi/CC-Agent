@@ -1,0 +1,42 @@
+# iPhone 16 Pro Max 产品知识库
+
+## 基本信息
+- 品牌：苹果（Apple）
+- 型号：iPhone 16 Pro Max
+- 上市时间：2024年9月
+- 定位：顶级旗舰手机
+- 价格：9999元起（256GB）
+
+## 核心参数
+- 处理器：A18 Pro芯片（3nm工艺）
+- 屏幕：6.9英寸 Super Retina XDR OLED，120Hz ProMotion，2000nit户外峰值亮度
+- 后置摄像头：4800万像素主摄 + 4800万像素超广角 + 1200万像素长焦（5倍光学变焦）
+- 前置摄像头：1200万像素TrueDepth
+- 电池：4685mAh
+- 充电：27W有线快充 + 25W MagSafe无线充电
+- 操作系统：iOS 18
+- 存储：8GB + 256GB/512GB/1TB
+- 防水等级：IP68
+
+## 产品卖点
+1. A18 Pro芯片，性能和能效全面提升
+2. 相机控制按钮，专业级影像体验
+3. 5倍光学变焦长焦，远摄更清晰
+4. Apple Intelligence智能功能
+5. 钛金属边框，轻量坚固
+
+## 常见问题
+Q: iPhone 16 Pro Max支持双卡双待吗？
+A: 支持，采用实体nano-SIM + eSIM的双卡方案（中国大陆版本支持双nano-SIM）。
+
+Q: iPhone 16 Pro Max防水吗？
+A: 支持IP68防水，在6米深水中可停留30分钟。
+
+Q: iPhone 16 Pro和Pro Max有什么区别？
+A: 主要区别：1）屏幕尺寸不同（6.3 vs 6.9英寸）；2）电池续航不同，Pro Max更持久；3）长焦镜头不同，Pro为5倍光学变焦，Pro Max也是5倍但传感器更大。
+
+Q: iPhone 16 Pro Max支持Apple Intelligence吗？
+A: 支持，但中国大陆地区暂未上线，需要等待后续更新。
+
+Q: iPhone 16 Pro Max的存储能扩展吗？
+A: 不支持存储扩展，建议购买时选择足够的存储容量。

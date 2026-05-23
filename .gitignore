@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Data (runtime generated)
+.chroma_db/
+data/user_memory/
+data/conversations/
+data/md5.text
+*.jsonl
+
+# Env
+.env
+*.env
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip list *)",
+      "Bash(python -m pip list)",
+      "Bash(.venv/Scripts/python diagnose.py)",
+      "Bash(\"D:\\\\py_study\\\\py_study2\\\\RAG + FastAPI\\\\.venv\\\\Scripts\\\\pip\" list)",
+      "Bash(python -c \"import dashscope; print\\('dashscope OK'\\)\")",
+      "Bash(python3 -c \"import dashscope; print\\('dashscope OK'\\)\")",
+      "Bash(python diagnose.py)",
+      "Bash(python -c \"import langchain_chroma; print\\('OK'\\)\")",
+      "Bash(python -c \"import chromadb; print\\('chromadb OK'\\)\")",
+      "Bash(python -c \"import langchain_core; print\\('langchain_core OK'\\)\")",
+      "Bash(python -c \"import langchain_community; print\\('langchain_community OK'\\)\")",
+      "Bash(D:\\\\py_study\\\\py_study2\\\\RAG + FastAPI\\\\.venv\\\\Scripts\\\\pip install *)",
+      "Bash(.venv/Scripts/python -c \"from rag import RagService; from knowledge_base import KnowledgeBaseService; print\\('All imports OK'\\)\")",
+      "Bash(.venv/Scripts/python -m uvicorn main:app --host 127.0.0.1 --port 8000)",
+      "Bash(curl -s http://127.0.0.1:8000/docs)",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/update/update_service -F \"file=@D:\\\\py_study\\\\py_study2\\\\RAG + FastAPI\\\\data\\\\尺码推荐.txt\")",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/update/update_service -F \"file=@D:\\\\py_study\\\\py_study2\\\\RAG + FastAPI\\\\data\\\\洗涤养护.txt\")",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/update/update_service -F \"file=@D:\\\\py_study\\\\py_study2\\\\RAG + FastAPI\\\\data\\\\颜色选择.txt\")",
+      "Bash(curl *)",
+      "Bash(.venv/Scripts/python -c ' *)"
+    ]
+  }
+}

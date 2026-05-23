@@ -1,0 +1,56 @@
+[
+  {
+    "question": "小米15 Pro的电池容量是多少？",
+    "answer": "小米15 Pro搭载6100mAh硅碳负极电池，支持90W有线快充和50W无线快充。",
+    "source": "xiaomi15pro.txt",
+    "type": "single_turn"
+  },
+  {
+    "question": "华为Mate 70 Pro支持卫星通信吗？",
+    "answer": "支持天通卫星通信，在无地面网络时可发送卫星消息。",
+    "source": "huawei_mate70pro.txt",
+    "type": "single_turn"
+  },
+  {
+    "question": "iPhone 16 Pro Max防水等级是什么？",
+    "answer": "支持IP68防水，在6米深水中可停留30分钟。",
+    "source": "iphone16promax.txt",
+    "type": "single_turn"
+  },
+  {
+    "question": "OPPO Find X8 Pro的处理器是什么？",
+    "answer": "搭载联发科天玑9400处理器。",
+    "source": "oppo_findx8pro.txt",
+    "type": "single_turn"
+  },
+  {
+    "question": "vivo X200 Pro的长焦像素是多少？",
+    "answer": "配备2亿像素潜望长焦镜头，支持3.7倍光学变焦。",
+    "source": "vivo_x200pro.txt",
+    "type": "single_turn"
+  },
+  {
+    "question": "小米15 Pro和华为Mate 70 Pro哪个电池更大？",
+    "answer": "小米15 Pro电池更大，为6100mAh，华为Mate 70 Pro为5700mAh。",
+    "source": "xiaomi15pro.txt,huawei_mate70pro.txt",
+    "type": "comparison"
+  },
+  {
+    "question": "小米15 Pro和OPPO Find X8 Pro的长焦有什么区别？",
+    "answer": "小米15 Pro配备5000万像素长焦，支持3.2倍光学变焦；OPPO Find X8 Pro配备双潜望长焦，支持6倍光学变焦，远摄能力更强。",
+    "source": "xiaomi15pro.txt,oppo_findx8pro.txt",
+    "type": "comparison"
+  },
+  {
+    "question": "我的小米手机充不进电了怎么办？",
+    "answer": "建议您尝试以下步骤：1）检查充电线和充电头是否正常，换一套试试；2）清理充电口灰尘；3）重启手机后再试；4）如果以上都不行，可能是电池或充电口硬件问题，建议到小米之家检测。",
+    "source": "",
+    "type": "troubleshoot"
+  },
+  {
+    "question": "手机屏幕突然不亮了但是有声音怎么办？",
+    "answer": "这可能是屏幕显示问题。建议：1）长按电源键10秒强制重启；2）检查是否误开了省电模式导致屏幕变暗；3）如果重启后仍然黑屏有声音，可能是屏幕排线或显示模块故障，需要到售后检测维修。",
+    "source": "",
+    "type": "troubleshoot"
+  }
+]
