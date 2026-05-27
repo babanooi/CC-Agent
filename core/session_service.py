@@ -1,5 +1,6 @@
 """会话管理服务"""
-import uuid, logging
+import uuid
+import logging
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 from memory.conversation import ConversationMemory
@@ -18,9 +19,10 @@ class Session:
 
 
 class SessionManager:
-    def __init__(self):
+    def __init__(self, llm=None):
         self.sessions: dict[str, Session] = {}
         self.timeout = timedelta(hours=config.session_timeout_hours)
+        self._llm = llm
 
     def get_or_create(self, session_id: str = None, user_id: str = "default") -> Session:
         if session_id and session_id in self.sessions:
@@ -32,7 +34,10 @@ class SessionManager:
                 s.last_active = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 return s
         sid = session_id or str(uuid.uuid4())[:8]
-        s = Session(session_id=sid, user_id=user_id)
+        s = Session(
+            session_id=sid, user_id=user_id,
+            memory=ConversationMemory(llm=self._llm),
+        )
         self.sessions[sid] = s
         return s
 

@@ -15,6 +15,12 @@ dashscope_api_key = os.getenv("DASHSCOPE_API_KEY", "sk-ada...110c")
 embedding_model = "text-embedding-v4"
 chat_model = "qwen3-max"
 rerank_model = "gte-rerank-v2"
+classifier_model = "qwen-turbo"  # 意图分类、验证、画像提取等轻量任务
+vision_model = "qwen3-vl"       # 多模态视觉理解
+
+# ==================== 图片上传限制 ====================
+max_images_per_message = 3
+max_image_size_mb = 10
 
 # ==================== 文档分块 ====================
 chunk_size = 500

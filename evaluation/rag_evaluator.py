@@ -10,7 +10,7 @@ import logging
 import os
 from datetime import datetime
 from langchain_community.chat_models import ChatTongyi
-from config import config_data as config
+from config import settings as config
 
 logger = logging.getLogger(__name__)
 

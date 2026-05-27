@@ -1,19 +1,22 @@
 """知识库 API"""
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, Request
 
 router = APIRouter(prefix="/knowledge", tags=["知识库"])
 
-_knowledge = None
-_rag = None
 
-def init(knowledge, rag):
-    global _knowledge, _rag
-    _knowledge, _rag = knowledge, rag
+def _get_knowledge(request: Request):
+    return request.app.state.knowledge
+
+
+def _get_rag(request: Request):
+    return request.app.state.rag
 
 
 @router.post("/upload")
-async def upload(file: UploadFile = File(...)):
+async def upload(file: UploadFile = File(...), request: Request = None):
+    knowledge = _get_knowledge(request)
+    rag = _get_rag(request)
     content = (await file.read()).decode("utf-8")
-    result = _knowledge.upload(content, file.filename)
-    _rag.sync_bm25()
+    result = knowledge.upload(content, file.filename)
+    rag.sync_bm25()
     return {"msg": result, "filename": file.filename}
