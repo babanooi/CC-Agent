@@ -20,7 +20,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="CloudAgent 智能客服", version="2.0")
+app = FastAPI(title="CloudAgent 智能客服", version="2.7")
 
 app.add_middleware(
     CORSMiddleware,
@@ -73,7 +73,7 @@ app.include_router(user.router)
 
 @app.get("/")
 async def root():
-    return {"service": "CloudAgent", "version": "2.0", "status": "running"}
+    return {"service": "CloudAgent", "version": "2.7", "status": "running"}
 
 
 @app.get("/health")
