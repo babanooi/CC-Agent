@@ -5,11 +5,11 @@ import ChatPanel from './components/ChatPanel';
 import DiagnosticsPanel from './components/DiagnosticsPanel';
 import KnowledgePanel from './components/KnowledgePanel';
 import {
-  sendChat, sendChatImage, endSession, getSessionHistory,
+  streamChat, streamChatImage, endSession, getSessionHistory,
   getUserProfile, listSessions, getHealth,
 } from './lib/api';
 import type {
-  UIMessage, ChatResponse, SessionSummary, UserProfile, HealthStatus,
+  UIMessage, SessionSummary, UserProfile, HealthStatus,
 } from './types';
 
 function now() {
@@ -30,10 +30,10 @@ export default function App() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
 
-  // 诊断
+  // 诊断（流式模式下只保留 session 和轮次信息）
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [healthError, setHealthError] = useState('');
-  const [lastResult, setLastResult] = useState<ChatResponse | null>(null);
+  const [lastResult, setLastResult] = useState<Record<string, any> | null>(null);
 
   // ---- 数据刷新 ----
   const refreshHealth = useCallback(async () => {
@@ -77,19 +77,17 @@ export default function App() {
     refreshProfile(userId);
   }, []);
 
-  // 用户 ID 变化时刷新
   const handleUserIdChange = (uid: string) => {
     setUserId(uid);
     refreshProfile(uid);
   };
 
-  // 定时健康检查
   useEffect(() => {
     const timer = setInterval(refreshHealth, 30000);
     return () => clearInterval(timer);
   }, [refreshHealth]);
 
-  // ---- 消息处理 ----
+  // ---- 消息处理（流式）----
   const appendUserMessage = (text: string, imageCount = 0): UIMessage => ({
     id: `u-${Date.now()}`,
     role: 'user',
@@ -98,66 +96,113 @@ export default function App() {
     imageCount,
   });
 
-  const handleResponse = (res: ChatResponse) => {
-    const assistantMsg: UIMessage = {
-      id: `a-${Date.now()}`,
-      role: 'assistant',
-      content: res.answer,
-      timestamp: now(),
-      intent: res.intent,
-      verification: res.verification,
-      turnCount: res.turn_count,
-      imageDesc: res.image_desc,
-      detectedProducts: res.detected_products,
-    };
-    setMessages((prev) => [...prev, assistantMsg]);
-    setSessionId(res.session_id);
-    setLastResult(res);
-  };
-
-  // 纯文本发送
-  const handleSendText = async (question: string): Promise<ChatResponse | null> => {
+  // 纯文本发送（流式）
+  const handleSendText = async (question: string) => {
     setError('');
     setLoading(true);
-    const userMsg = appendUserMessage(question);
-    setMessages((prev) => [...prev, userMsg]);
 
+    const userMsg = appendUserMessage(question);
+    const assistantId = `a-${Date.now()}`;
+    const assistantPlaceholder: UIMessage = {
+      id: assistantId, role: 'assistant', content: '', timestamp: now(),
+    };
+    setMessages((prev) => [...prev, userMsg, assistantPlaceholder]);
+
+    let answer = '';
     try {
-      const res = await sendChat({ question, session_id: sessionId, user_id: userId });
-      handleResponse(res);
-      refreshSessions();
-      return res;
+      const result = await streamChat(
+        { question, session_id: sessionId, user_id: userId },
+        (token) => {
+          answer += token;
+          setMessages((prev) =>
+            prev.map((m) => (m.id === assistantId ? { ...m, content: answer } : m)),
+          );
+        },
+      );
+
+      // 从流末尾提取元数据
+      const meta = result.meta || {};
+      const sid = meta.session_id || sessionId;
+      if (sid && sid !== sessionId) setSessionId(sid);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, content: result.text, intent: meta.intent, turnCount: meta.turn_count, verification: meta.verification }
+            : m,
+        ),
+      );
+      setLastResult({
+        answer: result.text,
+        intent: meta.intent,
+        verification: meta.verification,
+        session_id: sid,
+        turn_count: meta.turn_count,
+        image_desc: meta.image_desc,
+        detected_products: meta.detected_products,
+      });
     } catch (e: any) {
       setError(e.message || '请求失败');
-      return null;
+      // 移除空占位
+      setMessages((prev) => prev.filter((m) => m.id !== assistantId));
     } finally {
       setLoading(false);
+      refreshSessions();
     }
   };
 
-  // 图片发送
-  const handleSendImage = async (question: string, files: File[]): Promise<ChatResponse | null> => {
+  // 图片发送（流式）
+  const handleSendImage = async (question: string, files: File[]) => {
     setError('');
     setLoading(true);
+
     const userMsg = appendUserMessage(question, files.length);
-    setMessages((prev) => [...prev, userMsg]);
+    const assistantId = `a-${Date.now()}`;
+    const assistantPlaceholder: UIMessage = {
+      id: assistantId, role: 'assistant', content: '', timestamp: now(),
+    };
+    setMessages((prev) => [...prev, userMsg, assistantPlaceholder]);
 
+    const form = new FormData();
+    form.append('question', question);
+    form.append('user_id', userId);
+    if (sessionId) form.append('session_id', sessionId);
+    files.forEach((f) => form.append('images', f));
+
+    let answer = '';
     try {
-      const form = new FormData();
-      form.append('question', question);
-      form.append('user_id', userId);
-      if (sessionId) form.append('session_id', sessionId);
-      files.forEach((f) => form.append('images', f));
+      const result = await streamChatImage(form, (token) => {
+        answer += token;
+        setMessages((prev) =>
+          prev.map((m) => (m.id === assistantId ? { ...m, content: answer } : m)),
+        );
+      });
 
-      const res = await sendChatImage(form);
-      handleResponse(res);
-      refreshSessions();
-      return res;
+      const meta = result.meta || {};
+      const sid = meta.session_id || sessionId;
+      if (sid && sid !== sessionId) setSessionId(sid);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, content: result.text, intent: meta.intent, turnCount: meta.turn_count, verification: meta.verification }
+            : m,
+        ),
+      );
+      setLastResult({
+        answer: result.text,
+        intent: meta.intent,
+        verification: meta.verification,
+        session_id: sid,
+        turn_count: meta.turn_count,
+        image_desc: meta.image_desc,
+        detected_products: meta.detected_products,
+        image_count: files.length,
+      });
     } catch (e: any) {
       setError(e.message || '请求失败');
-      return null;
+      setMessages((prev) => prev.filter((m) => m.id !== assistantId));
     } finally {
       setLoading(false);
+      refreshSessions();
     }
   };
 
@@ -175,7 +220,7 @@ export default function App() {
     refreshProfile(userId);
   };
 
-  // 清空界面（不删后端数据）
+  // 清空界面
   const handleClearMessages = () => {
     setMessages([]);
     setLastResult(null);
@@ -202,7 +247,6 @@ export default function App() {
     }
   };
 
-  // 上传知识后刷新
   const handleKnowledgeUploaded = () => {
     refreshHealth();
   };

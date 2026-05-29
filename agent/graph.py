@@ -197,6 +197,7 @@ def build_graph(rag_service):
     def _output(state: AgentState) -> dict:
         return {"final_output": {
             "answer": state["answer"],
+            "context": state.get("context", ""),
             "intent": {"intent": state.get("intent"), "confidence": state.get("intent_confidence", 0)},
             "rewritten_query": {"rewritten": state.get("rewritten_query", state["question"])},
             "verification": state.get("verification", {}),

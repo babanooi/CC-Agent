@@ -16,6 +16,7 @@ venv/
 data/user_memory/
 data/conversations/
 data/md5.text
+data/sessions.db
 *.jsonl
 
 # Env

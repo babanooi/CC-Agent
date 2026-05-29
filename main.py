@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.rag_service import RagService
 from core.knowledge_service import KnowledgeService
 from core.session_service import SessionManager
+from core.session_store import SQLiteStore
 from api import chat, knowledge, user
 
 logging.basicConfig(
@@ -42,11 +43,23 @@ async def request_tracing(request: Request, call_next):
     return response
 
 
+# 启动校验
+from config import settings as config
+if not config.dashscope_api_key:
+    raise RuntimeError(
+        "DASHSCOPE_API_KEY 未设置。请在环境变量中设置：\n"
+        "  export DASHSCOPE_API_KEY=sk-xxxx\n"
+        "或修改 config/settings.py 中的 dashscope_api_key"
+    )
+
 # 初始化服务并挂载到 app.state
 rag = RagService()
 rag.sync_bm25()
 knowledge_svc = KnowledgeService()
-session_mgr = SessionManager(llm=rag.llm)
+session_mgr = SessionManager(
+    llm=rag.llm,
+    store=SQLiteStore(),  # 持久化到 data/sessions.db，重启不丢失
+)
 
 app.state.rag = rag
 app.state.knowledge = knowledge_svc

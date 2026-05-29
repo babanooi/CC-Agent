@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import {
   Send, ImagePlus, X, Square, Trash2, Loader2,
 } from 'lucide-react';
-import type { UIMessage, ChatResponse } from '../types';
+import type { UIMessage } from '../types';
 import MessageBubble from './MessageBubble';
 
 interface Props {
@@ -11,8 +11,8 @@ interface Props {
   userId: string;
   loading: boolean;
   error: string;
-  onSendText: (question: string) => Promise<ChatResponse | null>;
-  onSendImage: (question: string, files: File[]) => Promise<ChatResponse | null>;
+  onSendText: (question: string) => Promise<void>;
+  onSendImage: (question: string, files: File[]) => Promise<void>;
   onEndSession: () => void;
   onClearMessages: () => void;
 }

@@ -38,6 +38,11 @@ class RAGEvaluator:
             )
         return self._judge_llm
 
+    async def _get_judge_response(self, prompt: str) -> str:
+        llm = self._get_judge_llm()
+        response = await llm.ainvoke(prompt)
+        return response.content.strip()
+
     def load_test_data(self, filepath: str = None) -> list[dict]:
         """加载测试数据"""
         filepath = filepath or os.path.join(EVAL_DATA_DIR, "test_qa.json")
@@ -89,7 +94,7 @@ class RAGEvaluator:
 
     # ==================== 生成指标（LLM-as-Judge）====================
 
-    def eval_faithfulness(self, question: str, answer: str, context: str) -> dict:
+    async def eval_faithfulness(self, question: str, answer: str, context: str) -> dict:
         """
         评估回答的忠实度（是否基于检索到的文档）
 
@@ -116,13 +121,12 @@ class RAGEvaluator:
 严格按JSON格式输出：{{"score": 分数, "reason": "原因"}}"""
 
         try:
-            llm = self._get_judge_llm()
-            response = llm.invoke(prompt).content.strip()
+            response = await self._get_judge_response(prompt)
             return self._parse_json(response, {"score": 0, "reason": "解析失败"})
         except Exception as e:
             return {"score": 0, "reason": f"评估失败: {e}"}
 
-    def eval_answer_relevance(self, question: str, answer: str) -> dict:
+    async def eval_answer_relevance(self, question: str, answer: str) -> dict:
         """
         评估答案与问题的相关性
 
@@ -144,15 +148,14 @@ class RAGEvaluator:
 严格按JSON格式输出：{{"score": 分数, "reason": "原因"}}"""
 
         try:
-            llm = self._get_judge_llm()
-            response = llm.invoke(prompt).content.strip()
+            response = await self._get_judge_response(prompt)
             return self._parse_json(response, {"score": 0, "reason": "解析失败"})
         except Exception as e:
             return {"score": 0, "reason": f"评估失败: {e}"}
 
     # ==================== 端到端评测 ====================
 
-    def run_evaluation(self, rag_service, test_data: list[dict] = None) -> dict:
+    async def run_evaluation(self, rag_service, test_data: list[dict] = None) -> dict:
         """
         运行完整的端到端评测
 
@@ -176,21 +179,24 @@ class RAGEvaluator:
             logger.info(f"评测 [{i+1}/{len(test_data)}]: {question[:30]}...")
 
             # 运行 RAG
-            result = rag_service.chat(question, user_id="eval_user")
+            result = await rag_service.chat(question, user_id="eval_user")
             actual_answer = result["answer"]
+            context = result.get("context", "")
 
-            # 评估检索质量
-            # 简化：用 retrieved_docs 数量和意图作为检索指标
+            # 评估检索质量（ReAct 模式下无法直接获取文档数，用上下文长度作为近似指标）
             retrieval_score = {
-                "retrieved_count": result["retrieved_docs"],
+                "context_length": len(context),
                 "intent": result["intent"]["intent"],
             }
 
-            # 评估忠实度
-            faithfulness = self.eval_faithfulness(question, actual_answer, "参考资料")
+            # 评估忠实度（传入实际检索上下文）
+            faithfulness = await self.eval_faithfulness(
+                question, actual_answer,
+                context if context else "无检索上下文",
+            )
 
             # 评估相关性
-            relevance = self.eval_answer_relevance(question, actual_answer)
+            relevance = await self.eval_answer_relevance(question, actual_answer)
 
             results.append({
                 "question": question,

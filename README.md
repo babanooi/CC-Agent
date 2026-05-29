@@ -106,9 +106,8 @@ react_generate:
 # 1. 安装依赖
 pip install -r requirements.txt
 
-# 2. 配置 API Key（二选一）
+# 2. 设置 API Key
 export DASHSCOPE_API_KEY=sk-your-key
-# 或修改 config/settings.py 中的 dashscope_api_key
 
 # 3. 启动服务
 python -m uvicorn main:app --host 127.0.0.1 --port 8080

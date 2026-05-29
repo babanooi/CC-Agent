@@ -9,7 +9,7 @@ HOST = os.getenv("APP_HOST", "127.0.0.1")
 PORT = int(os.getenv("APP_PORT", "8080"))
 
 # ==================== DashScope API ====================
-dashscope_api_key = os.getenv("DASHSCOPE_API_KEY", "sk-ada...110c")
+dashscope_api_key = os.getenv("DASHSCOPE_API_KEY", "")
 
 # ==================== 模型配置 ====================
 embedding_model = "text-embedding-v4"

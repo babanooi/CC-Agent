@@ -2,6 +2,7 @@
 RAG 核心服务
 组装各层组件，提供统一的业务接口
 """
+import json
 import logging
 from typing import AsyncGenerator
 from langchain_community.chat_models import ChatTongyi
@@ -116,8 +117,9 @@ class RagService:
     async def chat_stream(
         self, question: str, memory: ConversationMemory = None,
         user_id: str = "default", images: list[str] = None,
+        session_id: str = "",
     ) -> AsyncGenerator[str, None]:
-        """流式对话接口 — ReAct 预检索 + 最终答案流式输出"""
+        """流式对话接口 — ReAct 预检索 + 最终答案流式输出，末尾追加元数据"""
         long_mem = self._get_long_term(user_id)
         image_list = images or []
         has_image = bool(image_list)
@@ -190,11 +192,33 @@ class RagService:
                 full_answer += token
                 yield token
 
-        # 6. 更新记忆
+        # 6. 答案验证（对齐 graph 的 verify 节点）
+        verification = {}
+        if not is_chitchat and full_answer.strip():
+            try:
+                from agent.verifier import AnswerVerifier
+                verification = await AnswerVerifier().averify(
+                    question, full_answer, context, llm=self.light_llm,
+                )
+            except Exception as e:
+                logger.warning("流式验证失败: %s", e)
+
+        # 7. 更新记忆
         if memory:
             img_count = len(image_list)
             memory.add_message("user", question, image_count=img_count)
             memory.add_message("assistant", full_answer)
+
+        # 8. 流末尾输出元数据（前端解析后填充诊断面板）
+        meta = json.dumps({
+            "intent": {"intent": intent, "confidence": intent_result["confidence"]},
+            "verification": verification,
+            "session_id": session_id or "",
+            "turn_count": memory.turn_count if memory else 1,
+            "image_desc": image_desc,
+            "detected_products": detected_products,
+        }, ensure_ascii=False)
+        yield f"\n__CA_META__{meta}__CA_META_END__"
 
     async def _run_react_tool_loop(
         self, question: str, intent: str, user_profile: str,

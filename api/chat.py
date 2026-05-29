@@ -61,7 +61,10 @@ async def chat_stream(req: ChatRequest, request: Request):
     session = sessions.get_or_create(req.session_id, req.user_id)
 
     async def generate():
-        async for token in rag.chat_stream(req.question, session.memory, req.user_id):
+        async for token in rag.chat_stream(
+            req.question, session.memory, req.user_id,
+            session_id=session.session_id,
+        ):
             yield token
 
     return StreamingResponse(generate(), media_type="text/plain")
@@ -110,7 +113,10 @@ async def chat_image_stream(
     session = sessions.get_or_create(session_id, user_id)
 
     async def generate():
-        async for token in rag.chat_stream(question, session.memory, user_id, images=image_b64_list):
+        async for token in rag.chat_stream(
+            question, session.memory, user_id, images=image_b64_list,
+            session_id=session.session_id,
+        ):
             yield token
 
     return StreamingResponse(generate(), media_type="text/plain")
@@ -122,7 +128,7 @@ async def chat_image_stream(
 async def end_session(session_id: str, request: Request, user_id: str = "default"):
     rag = _get_rag(request)
     sessions = _get_sessions(request)
-    session = sessions.sessions.get(session_id)
+    session = sessions.get(session_id, user_id)
     if not session:
         raise HTTPException(404, "会话不存在")
     await rag.end_session(user_id, session.memory)
@@ -131,16 +137,26 @@ async def end_session(session_id: str, request: Request, user_id: str = "default
 
 
 @router.get("/{session_id}/history")
-async def get_history(session_id: str, request: Request):
+async def get_history(
+    session_id: str, request: Request, user_id: str = "default",
+    limit: int = 0, offset: int = 0,
+):
     sessions = _get_sessions(request)
-    session = sessions.sessions.get(session_id)
+    session = sessions.get(session_id, user_id)
     if not session:
         raise HTTPException(404, "会话不存在")
-    messages = session.memory.get_chat_history()
-    # 把 image_count 也返回给前端
+    # 从 SQLite 取完整历史，不受 ConversationMemory 窗口限制
+    all_msgs = sessions.store.get_messages(session_id)
+    if limit > 0:
+        all_msgs = all_msgs[offset:offset + limit]
+    elif offset > 0:
+        all_msgs = all_msgs[offset:]
     full_messages = [
-        {"role": m.role, "content": m.content, "image_count": getattr(m, "image_count", 0)}
-        for m in session.memory.get_recent()
+        {"role": m["role"], "content": m["content"],
+         "image_count": m.get("image_count", 0),
+         "timestamp": m.get("timestamp", "")}
+        for m in all_msgs
     ]
     return {"session_id": session_id, "messages": full_messages,
+            "total": len(all_msgs),
             "summary": session.memory.summary}

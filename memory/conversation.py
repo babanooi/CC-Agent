@@ -16,14 +16,19 @@ class Message:
 
 
 class ConversationMemory:
-    def __init__(self, window_size: int = None, llm=None):
+    def __init__(self, window_size: int = None, llm=None,
+                 on_message: callable = None, on_summary: callable = None):
         self.messages: list[Message] = []
         self.summary: str = ""
         self.window_size = window_size or config.memory_window_size
         self._llm = llm
+        self._on_message = on_message  # 持久化回调(role, content, image_count)
+        self._on_summary = on_summary  # 持久化回调(summary_text)
 
     def add_message(self, role: str, content: str, image_count: int = 0):
         self.messages.append(Message(role=role, content=content, image_count=image_count))
+        if self._on_message:
+            self._on_message(role, content, image_count)
         if len(self.messages) > self.window_size * 2:
             self._compress()
 
@@ -61,6 +66,8 @@ class ConversationMemory:
         try:
             new_summary = llm.invoke(prompt).content
             self.summary = f"{self.summary}\n{new_summary}" if self.summary else new_summary
+            if self._on_summary:
+                self._on_summary(self.summary)
         except Exception as e:
             logger.error("摘要压缩失败: %s", e)
 
